@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Summary</title>
     <style>
       body {
@@ -93,27 +95,46 @@
           transform: rotate(360deg);
         }
       }
+
+      #settings-btn {
+  background-color: #666;
+}
+
+#settings-btn:hover {
+  background-color: #555;
+}
+
+.sr-only {
+  position: absolute;
+  left: -9999px;
+}
     </style>
   </head>
   <body>
     <h2>AI Summary</h2>
 
-    <div class="options">
-      <select id="summary-type">
-        <option value="brief">Brief Summary</option>
-        <option value="detailed">Detailed Summary</option>
-        <option value="bullets">Bullet Points</option>
-      </select>
-      <button id="summarize">Summarize This Page</button>
-      <button id="copy-btn">Copy Summary</button>
-    </div>
+<div class="options">
+  <label for="summary-type" class="sr-only">
+    Summary Type
+  </label>
+
+  <select id="summary-type">
+    <option value="brief">Brief Summary</option>
+    <option value="detailed">Detailed Summary</option>
+    <option value="bullets">Bullet Points</option>
+  </select>
+
+  <button id="summarize">Summarize</button>
+  <button id="copy-btn">Copy</button>
+  <button id="settings-btn">Settings</button>
+</div>
 
     <div id="result">
       Select a summary type and click 'Summarize This Page' to generate a
       summary.
     </div>
 
-    <script src="config.js"></script>
+    <!-- <script src="config.js"></script> -->
     <script src="popup.js"></script>
   </body>
 </html>
