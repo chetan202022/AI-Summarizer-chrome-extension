@@ -1,6 +1,6 @@
 # 🤖 AI Summarizer Chrome Extension
 
-AI Summarizer is a Manifest V3 Chrome Extension that extracts webpage content and generates AI-powered summaries using Groq's Llama models. It helps users quickly understand articles and web content by reducing reading time and presenting concise summaries in multiple formats.
+AI Summarizer is a Manifest V3 Chrome Extension that extracts webpage content and generates AI-powered summaries using Groq’s Llama models. It helps users quickly understand articles by converting long content into concise, readable summaries in multiple formats and languages.
 
 ---
 
@@ -13,9 +13,16 @@ AI Summarizer is a Manifest V3 Chrome Extension that extracts webpage content an
   * Brief Summary
   * Detailed Summary
   * Bullet-Point Summary
+* 🌍 Multi-language support (English, Hindi, Spanish, French, German, Japanese)
+* 🌗 Theme support:
+
+  * Light Mode
+  * Dark Mode
+  * System Theme (auto-detect OS setting)
 * 🔑 Automatic onboarding for API key configuration
 * 💾 Secure API key storage using Chrome Sync Storage
 * 📋 Copy generated summaries with one click
+* 📄 Export summaries as .txt file
 * ⚙️ Settings page to manage API keys anytime
 * 🎯 Clean and lightweight user interface
 * 🔄 Real-time summarization directly inside the browser
@@ -27,8 +34,7 @@ AI Summarizer is a Manifest V3 Chrome Extension that extracts webpage content an
 * JavaScript (ES6+)
 * HTML5
 * CSS3
-* Chrome Extension APIs
-* Manifest V3
+* Chrome Extension APIs (Manifest V3)
 * Content Scripts
 * Service Workers
 * Chrome Storage API
@@ -51,18 +57,6 @@ AI Summarizer is a Manifest V3 Chrome Extension that extracts webpage content an
 ├── popup.js
 └── README.md
 ```
-
----
-
-### 🤖 AI Summary Popup
-
-Generate summaries directly from the extension popup.
-
-> Replace this section with screenshots of:
->
-> * Brief Summary
-> * Detailed Summary
-> * Bullet-Point Summary
 
 ---
 
@@ -110,18 +104,45 @@ Toggle **Developer Mode** in the top-right corner.
 
 ---
 
-## 🚀 Usage
+## 🚀 How to use
 
 1. Open any article or webpage.
 2. Click the AI Summarizer extension icon.
 3. Select a summary type:
 
-   * Brief
-   * Detailed
-   * Bullet Points
+   * Summary type
+   * Language
+   * Theme
 4. Click **Summarize**.
-5. View the generated summary.
-6. Copy the summary using the **Copy** button.
+5. View AI-generated summary.
+6. Use:
+   * **Copy** button
+   * **Export TXT** button
+
+---
+
+## 🌗 Theme System
+* The extension supports:
+  * **Light Mode** 
+  * **Dark Mode** 
+  * **System Theme** (auto detects OS theme) 
+
+---
+
+## 🌍 Multi-Language Support
+* Summaries can be generated in:
+  * English
+  * Hindi 
+  * Spanish
+  * French
+  * German
+  * Japanese
+
+---
+
+## 📄 Export Feature
+* Export any summary as a .txt file
+* Useful for notes, revision, or documentation
 
 ---
 
