@@ -1,176 +1,157 @@
 document.addEventListener("DOMContentLoaded", () => {
   const summarizeBtn = document.getElementById("summarize");
   const copyBtn = document.getElementById("copy-btn");
+  const exportBtn = document.getElementById("export-btn");
   const settingsBtn = document.getElementById("settings-btn");
+
   const resultDiv = document.getElementById("result");
 
-  summarizeBtn.addEventListener("click", summarizePage);
-  copyBtn.addEventListener("click", copySummary);
+  const summaryTypeEl = document.getElementById("summary-type");
+  const languageEl = document.getElementById("language");
+  const themeEl = document.getElementById("theme");
 
-  if (settingsBtn) {
-    settingsBtn.addEventListener("click", () => {
-      chrome.runtime.openOptionsPage();
-    });
+  // ===============================
+  // LOAD SAVED SETTINGS
+  // ===============================
+  chrome.storage.sync.get(
+    ["summaryType", "language", "theme"],
+    (res) => {
+      if (res.summaryType) summaryTypeEl.value = res.summaryType;
+      if (res.language) languageEl.value = res.language;
+      if (res.theme) applyTheme(res.theme);
+    }
+  );
+
+  // ===============================
+  // SAVE SETTINGS
+  // ===============================
+  summaryTypeEl.addEventListener("change", () => {
+    chrome.storage.sync.set({ summaryType: summaryTypeEl.value });
+  });
+
+  languageEl.addEventListener("change", () => {
+    chrome.storage.sync.set({ language: languageEl.value });
+  });
+
+  themeEl.addEventListener("change", () => {
+    chrome.storage.sync.set({ theme: themeEl.value });
+    applyTheme(themeEl.value);
+  });
+
+  // ===============================
+  // BUTTON EVENTS
+  // ===============================
+  summarizeBtn.addEventListener("click", summarizePage);
+
+  copyBtn.addEventListener("click", () => {
+    const text = resultDiv.innerText.trim();
+    if (!text) return;
+
+    navigator.clipboard.writeText(text);
+
+    copyBtn.innerText = "Copied!";
+    setTimeout(() => (copyBtn.innerText = "Copy"), 1500);
+  });
+
+  exportBtn.addEventListener("click", () => {
+    const text = resultDiv.innerText.trim();
+    if (!text) return;
+
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "summary.txt";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
+
+  settingsBtn.addEventListener("click", () => {
+    chrome.runtime.openOptionsPage();
+  });
+
+  // ===============================
+  // THEME HANDLER
+  // ===============================
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      document.body.classList.add("dark");
+    } else if (theme === "light") {
+      document.body.classList.remove("dark");
+    } else {
+      const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.body.classList.toggle("dark", dark);
+    }
   }
 
+  // ===============================
+  // SUMMARIZE PAGE
+  // ===============================
   async function summarizePage() {
+    const summaryType = summaryTypeEl.value;
+    const language = languageEl.value;
+
     resultDiv.innerHTML =
       '<div class="loading"><div class="loader"></div></div>';
 
-    const summaryType =
-      document.getElementById("summary-type").value;
+    chrome.storage.sync.get(["groqApiKey"], (res) => {
+      const apiKey = res.groqApiKey;
 
-    chrome.storage.sync.get(
-      ["groqApiKey"],
-      async (result) => {
-        const apiKey = result.groqApiKey;
+      if (!apiKey) {
+        resultDiv.innerText = "Please set Groq API key in settings.";
+        chrome.runtime.openOptionsPage();
+        return;
+      }
 
-        if (!apiKey) {
-          resultDiv.innerText =
-            "Groq API key not found. Opening Settings...";
-
-          chrome.runtime.openOptionsPage();
-          return;
-        }
-
-        chrome.tabs.query(
-          {
-            active: true,
-            currentWindow: true,
-          },
-          ([tab]) => {
-            if (!tab || !tab.id) {
+      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: "GET_ARTICLE_TEXT" },
+          async (response) => {
+            if (chrome.runtime.lastError || !response?.text) {
               resultDiv.innerText =
-                "Could not access current tab.";
+                "Unable to read page content. Refresh and try again.";
               return;
             }
 
-            chrome.tabs.sendMessage(
-              tab.id,
-              { type: "GET_ARTICLE_TEXT" },
-              async (res) => {
-                if (chrome.runtime.lastError) {
-                  console.error(
-                    chrome.runtime.lastError
-                  );
+            try {
+              const summary = await getGroqSummary(
+                response.text,
+                summaryType,
+                language,
+                apiKey
+              );
 
-                  resultDiv.innerText =
-                    "Unable to access this page. Please refresh the page and try again.";
-
-                  return;
-                }
-
-                if (!res || !res.text) {
-                  resultDiv.innerText =
-                    "Could not extract article text from this page.";
-
-                  return;
-                }
-
-                try {
-                  const summary =
-                    await getGroqSummary(
-                      res.text,
-                      summaryType,
-                      apiKey
-                    );
-
-                  resultDiv.innerText = summary;
-                } catch (error) {
-                  resultDiv.innerText =
-                    error.message ||
-                    "Failed to generate summary.";
-                }
-              }
-            );
+              resultDiv.innerText = summary;
+            } catch (err) {
+              resultDiv.innerText = err.message;
+            }
           }
         );
-      }
-    );
-  }
-
-  function copySummary() {
-    const summaryText = resultDiv.innerText;
-
-    if (!summaryText.trim()) return;
-
-    navigator.clipboard
-      .writeText(summaryText)
-      .then(() => {
-        const originalText = copyBtn.innerText;
-
-        copyBtn.innerText = "Copied!";
-
-        setTimeout(() => {
-          copyBtn.innerText = originalText;
-        }, 2000);
-      })
-      .catch((err) => {
-        console.error(
-          "Failed to copy:",
-          err
-        );
       });
-  }
-});
-
-
-async function getGroqSummary(
-  text,
-  summaryType,
-  apiKey
-) {
-  const maxLength = 15000;
-
-  const truncatedText =
-    text.length > maxLength
-      ? text.substring(0, maxLength) + "..."
-      : text;
-
-  let prompt = "";
-
-  switch (summaryType) {
-    case "brief":
-      prompt = `
-Provide a brief summary of the following article in 2–3 sentences.
-
-Article:
-${truncatedText}
-`;
-      break;
-
-    case "detailed":
-      prompt = `
-Provide a detailed summary of the following article.
-Cover all major points and important details.
-
-Article:
-${truncatedText}
-`;
-      break;
-
-    case "bullets":
-      prompt = `
-Summarize the following article into 5–7 concise bullet points.
-
-Each point should start with "- ".
-
-Article:
-${truncatedText}
-`;
-      break;
-
-    default:
-      prompt = `
-Summarize the following article.
-
-Article:
-${truncatedText}
-`;
+    });
   }
 
-  try {
-    const response = await fetch(
+  // ===============================
+  // GROQ API
+  // ===============================
+  async function getGroqSummary(text, type, lang, apiKey) {
+    const trimmed =
+      text.length > 15000 ? text.slice(0, 15000) + "..." : text;
+
+    let prompt = "";
+
+    if (type === "brief") {
+      prompt = `Summarize in 2-3 sentences in ${lang}:\n\n${trimmed}`;
+    } else if (type === "detailed") {
+      prompt = `Provide a detailed summary in ${lang}:\n\n${trimmed}`;
+    } else {
+      prompt = `Summarize in 5-7 bullet points in ${lang} (use '- ' only):\n\n${trimmed}`;
+    }
+
+    const res = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
@@ -180,60 +161,25 @@ ${truncatedText}
         },
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.2,
-          max_tokens: 700,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.3,
+          max_tokens: 800,
         }),
       }
     );
 
-    const data = await response.json();
+    const data = await res.json();
 
-    console.log("Groq Response:", data);
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error(
-          "Invalid Groq API Key. Please update it in Settings."
-        );
-      }
-
-      if (response.status === 429) {
-        throw new Error(
-          "Groq rate limit exceeded. Please try again in a few seconds."
-        );
-      }
-
-      if (response.status >= 500) {
-        throw new Error(
-          "Groq service is temporarily unavailable. Please try again later."
-        );
-      }
-
+    if (!res.ok) {
       throw new Error(
-        data.error?.message ||
-          "Groq API request failed."
+        data?.error?.message ||
+          "Groq API request failed"
       );
     }
 
     return (
       data?.choices?.[0]?.message?.content?.trim() ||
-      "No summary available."
-    );
-  } catch (error) {
-    console.error(
-      "Error calling Groq API:",
-      error
-    );
-
-    throw new Error(
-      error.message ||
-      "Failed to generate summary."
+      "No summary generated."
     );
   }
-}
+});
