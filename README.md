@@ -49,7 +49,7 @@ AI Summarizer is a Manifest V3 Chrome Extension that extracts webpage content an
 .
 ├── background.js
 ├── content.js
-├── icon.png
+├── icons
 ├── manifest.json
 ├── options.html
 ├── options.js
