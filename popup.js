@@ -105,32 +105,54 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-        chrome.tabs.sendMessage(
-          tab.id,
-          { type: "GET_ARTICLE_TEXT" },
-          async (response) => {
-            if (chrome.runtime.lastError || !response?.text) {
-              resultDiv.innerText =
-                "Unable to read page content. Refresh and try again.";
-              return;
-            }
+chrome.tabs.query(
+  { active: true, currentWindow: true },
+  async ([tab]) => {
+    if (!tab?.id) {
+      resultDiv.innerText = "Could not access current tab.";
+      return;
+    }
 
-            try {
-              const summary = await getGroqSummary(
-                response.text,
-                summaryType,
-                language,
-                apiKey
-              );
-
-              resultDiv.innerText = summary;
-            } catch (err) {
-              resultDiv.innerText = err.message;
-            }
-          }
-        );
+    try {
+      // Inject content.js only when user clicks Summarize
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ["content.js"],
       });
+
+      chrome.tabs.sendMessage(
+        tab.id,
+        { type: "GET_ARTICLE_TEXT" },
+        async (response) => {
+          if (chrome.runtime.lastError || !response?.text) {
+            resultDiv.innerText =
+              "Unable to read page content. Refresh and try again.";
+            return;
+          }
+
+          try {
+            const summary = await getGroqSummary(
+              response.text,
+              summaryType,
+              language,
+              apiKey
+            );
+
+            resultDiv.innerText = summary;
+          } catch (err) {
+            resultDiv.innerText =
+              err.message || "Failed to generate summary.";
+          }
+        }
+      );
+    } catch (error) {
+      console.error(error);
+
+      resultDiv.innerText =
+        "Unable to access this page. Chrome extensions cannot summarize certain pages such as the Chrome Web Store, chrome:// pages, or internal browser pages.";
+    }
+  }
+);
     });
   }
 
