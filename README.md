@@ -4,6 +4,14 @@ AI Summarizer is a Manifest V3 Chrome Extension that extracts webpage content an
 
 ---
 
+## 🌐 Chrome Web Store
+
+Install AI Summarizer from the Chrome Web Store:
+
+https://chromewebstore.google.com/detail/lmgihigkgdlnplkagbbnclbfnpacaojf?utm_source=item-share-cb
+
+---
+
 ## 🚀 Features
 
 * 📄 Summarize content from almost any webpage
