@@ -3,7 +3,7 @@
 An AI-powered **Chrome Extension** built using **Manifest V3** that extracts webpage content and generates intelligent summaries using **Groq's Llama models**. Designed for productivity, the extension helps users quickly understand lengthy articles through concise, customizable summaries in multiple languages.
 
 <a href="https://chromewebstore.google.com/detail/lmgihigkgdlnplkagbbnclbfnpacaojf" target="_blank">
-  <img src="https://img.shields.io/badge/🚀-Chrome%20Web%20Store-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store">
+  <img src="https://img.shields.io/badge/Chrome%20Web%20Store-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=555555" alt="Chrome Web Store">
 </a>
 
 <a href="https://github.com/chetan202022/AI-Summarizer-chrome-extension" target="_blank">
@@ -14,9 +14,13 @@ An AI-powered **Chrome Extension** built using **Manifest V3** that extracts web
 
 ## 📸 Preview
 
-| API Configuration | AI Summary |
-|-------|------------|
-| <img src="./Screenshots/API-configuration.png" width="100%"> | <img src="./Screenshots/AI-summary.png" width="100%"> |
+| API Configuration |
+|-------|
+| <img src="./Screenshots/API-configuration.png" width="100%"> |
+
+| AI Summary |
+|------------|
+| <img src="./Screenshots/AI-summary.png" width="100%"> |
 
 ---
 
